@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/animate-ui/components/radix/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/animate-ui/components/radix/dialog";
 import { WebGLShader } from "@/components/ui/web-gl-shader";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { FloatingDock } from "./ui/floating-dock";
@@ -48,17 +57,19 @@ export default function DemoOne() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const form = event.currentTarget;
     setFormStatus({ state: "loading", message: "" });
 
     if (!FORM_ENDPOINT) {
       setFormStatus({
         state: "error",
-        message: "Set VITE_CONTACT_ENDPOINT (e.g. Formspree URL) in your .env to enable sending.",
+        message:
+          "Set VITE_CONTACT_ENDPOINT (e.g. Formspree URL) in your .env to enable sending.",
       });
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
 
     try {
       const response = await fetch(FORM_ENDPOINT, {
@@ -69,17 +80,28 @@ export default function DemoOne() {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Request failed");
+      const isOk = response.ok || response.status === 302;
+      if (!isOk) {
+        let errorText = "Request failed";
+        try {
+          const data = await response.json();
+          errorText = data?.message || data?.error || errorText;
+        } catch (_) {
+          // ignore parse errors
+        }
+        throw new Error(errorText);
       }
 
       setFormStatus({ state: "success", message: "Sent! Check your inbox." });
-      event.currentTarget.reset();
+      if (form) {
+        form.reset();
+      }
       setTimeout(() => setDialogOpen(false), 500);
     } catch (error) {
       setFormStatus({
         state: "error",
-        message: "Could not send. Try again or verify the endpoint.",
+        message:
+          error?.message || "Could not send. Try again or verify the endpoint.",
       });
     }
   };
@@ -120,7 +142,10 @@ export default function DemoOne() {
           <div className="flex justify-center">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <LiquidButton className="text-white border rounded-full" size={"xl"}>
+                <LiquidButton
+                  className="text-white border rounded-full"
+                  size={"xl"}
+                >
                   Contact Me
                 </LiquidButton>
               </DialogTrigger>
@@ -133,7 +158,10 @@ export default function DemoOne() {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid gap-3">
-                    <label className="text-sm font-medium text-slate-200" htmlFor="name">
+                    <label
+                      className="text-sm font-medium text-slate-200"
+                      htmlFor="name"
+                    >
                       Name
                     </label>
                     <input
@@ -145,7 +173,10 @@ export default function DemoOne() {
                     />
                   </div>
                   <div className="grid gap-3">
-                    <label className="text-sm font-medium text-slate-200" htmlFor="email">
+                    <label
+                      className="text-sm font-medium text-slate-200"
+                      htmlFor="email"
+                    >
                       Email
                     </label>
                     <input
@@ -158,7 +189,10 @@ export default function DemoOne() {
                     />
                   </div>
                   <div className="grid gap-3">
-                    <label className="text-sm font-medium text-slate-200" htmlFor="message">
+                    <label
+                      className="text-sm font-medium text-slate-200"
+                      htmlFor="message"
+                    >
                       Message
                     </label>
                     <textarea
@@ -172,12 +206,17 @@ export default function DemoOne() {
                   </div>
                   {!FORM_ENDPOINT && (
                     <p className="text-xs text-amber-300/90">
-                      Set VITE_CONTACT_ENDPOINT to your form handler URL (Formspree/Web3Forms) to deliver emails.
+                      Set VITE_CONTACT_ENDPOINT to your form handler URL
+                      (Formspree/Web3Forms) to deliver emails.
                     </p>
                   )}
                   {formStatus.message && (
                     <p
-                      className={`text-sm ${formStatus.state === "success" ? "text-emerald-300" : "text-red-300"}`}
+                      className={`text-sm ${
+                        formStatus.state === "success"
+                          ? "text-emerald-300"
+                          : "text-red-300"
+                      }`}
                     >
                       {formStatus.message}
                     </p>
