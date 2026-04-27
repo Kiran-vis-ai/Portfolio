@@ -29,7 +29,7 @@ export default function DemoOne() {
   const dockItems = [
     {
       title: "GitHub",
-      href: "https://github.com/GSaiKiran15",
+      href: "https://github.com/Kiran-vis-ai",
       icon: <IconBrandGithub className="h-5 w-5" />,
     },
     {
